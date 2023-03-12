@@ -6,7 +6,8 @@ This file contains the routes for your application.
 """
 
 from app import app
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, flash, redirect
+from .forms import PropertyForm
 
 
 ###
@@ -22,8 +23,26 @@ def home():
 @app.route('/about/')
 def about():
     """Render the website's about page."""
-    return render_template('about.html', name="Mary Jane")
+    return render_template('about.html', name="Peter Thelwell")
 
+@app.route('/properties/create/', methods = ["GET", "POST"])
+def create():
+    """Render the form to add a new property."""
+    form = PropertyForm()
+    if form.validate_on_submit():
+        flash(f"Property was successfully added")
+        return redirect(url_for('home'))
+    return render_template('create.html', form = form)
+
+@app.route('/properties/', methods = ["GET", "POST"])
+def properties():
+    """Renders a list of all properties in the database."""
+    return render_template('properties.html')
+
+@app.route('/properties/<propertyid>', methods = ["GET", "POST"])
+def viewproperty():
+    """Renders a page about a single property."""
+    return render_template('viewproperty.html')
 
 ###
 # The functions below should be applicable to all Flask apps.
