@@ -5,9 +5,13 @@ Werkzeug Documentation:  https://werkzeug.palletsprojects.com/
 This file contains the routes for your application.
 """
 
-from app import app
+from app import app, db
 from flask import render_template, request, redirect, url_for, flash, redirect
 from .forms import PropertyForm
+from .models import Property
+
+from werkzeug.utils import secure_filename
+import os
 
 
 ###
@@ -29,10 +33,29 @@ def about():
 def create():
     """Render the form to add a new property."""
     form = PropertyForm()
-    if form.validate_on_submit():
-        flash(f"Property was successfully added")
-        return redirect(url_for('home'))
-    return render_template('create.html', form = form)
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            title = request.form['title']
+            desc = request.form['desc']
+            bedsno = request.form['bedsno']
+            bathsno = request.form['bathsno']
+            price = request.form['price']
+            propertytype = request.form['propertytype']
+            location = request.form['location']
+            file = request.files['pic']
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+            newprop = Property(title, desc, bedsno, bathsno, price, propertytype, location, filename)
+            db.session.add(newprop)
+            db.session.commit()
+            flash(f"Property was successfully added", "success")
+            return redirect(url_for('properties'))
+        else:
+            flash(f"Error!")
+            return render_template('create.html', form = form)
+    elif request.method == 'GET':
+        return render_template('create.html', form = form)
 
 @app.route('/properties/', methods = ["GET", "POST"])
 def properties():
