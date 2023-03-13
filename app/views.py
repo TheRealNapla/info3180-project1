@@ -6,7 +6,7 @@ This file contains the routes for your application.
 """
 
 from app import app, db
-from flask import render_template, request, redirect, url_for, flash, redirect
+from flask import render_template, request, redirect, url_for, flash, redirect, send_from_directory
 from .forms import PropertyForm
 from .models import Property
 
@@ -57,15 +57,23 @@ def create():
     elif request.method == 'GET':
         return render_template('create.html', form = form)
 
-@app.route('/properties/', methods = ["GET", "POST"])
+@app.route('/properties/')
 def properties():
     """Renders a list of all properties in the database."""
-    return render_template('properties.html')
+    properties=Property.query.all()
+    return render_template('properties.html', properties=properties)
 
-@app.route('/properties/<propertyid>', methods = ["GET", "POST"])
-def viewproperty():
+@app.route('/properties/<propertyid>')
+def viewproperty(propertyid):
     """Renders a page about a single property."""
-    return render_template('viewproperty.html')
+    property = Property.query.filter_by(id=propertyid).first()
+    return render_template('viewProperty.html', property=property)
+
+@app.route('/uploads/<filename>')
+def getpic(filename):
+    pic = send_from_directory(os.path.join(os.getcwd(),
+    app.config['UPLOAD_FOLDER']), filename)
+    return pic
 
 ###
 # The functions below should be applicable to all Flask apps.
